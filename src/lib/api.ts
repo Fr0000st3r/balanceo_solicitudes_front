@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'https://api-frost.onrender.com/api';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const userId = localStorage.getItem('user_id');
