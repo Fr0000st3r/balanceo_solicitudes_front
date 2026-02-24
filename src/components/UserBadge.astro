@@ -1,0 +1,64 @@
+---
+
+---
+
+<div class="user-profile" id="userProfile">
+    <div class="avatar" id="userAvatar">??</div>
+    <span id="userNameDisplay">Usuario</span>
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">Detalles de Usuario</div>
+        <div class="dropdown-item">
+            <strong>ID:</strong>
+            <span id="displayId">-</span>
+        </div>
+        <div class="dropdown-item">
+            <strong>Nombre:</strong>
+            <span id="displayName">-</span>
+        </div>
+        <div class="dropdown-item">
+            <strong>Apellidos:</strong>
+            <span id="displayLastName">-</span>
+        </div>
+        <div class="dropdown-item">
+            <strong>Login:</strong>
+            <span id="displayLogin">-</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auth & Profile Logic
+    const userId = localStorage.getItem("user_id");
+    const userName = localStorage.getItem("user_name");
+
+    const nameDisplay = document.getElementById("userNameDisplay");
+    const avatarDisplay = document.getElementById("userAvatar");
+    const profileContainer = document.getElementById("userProfile");
+    const dropdown = document.getElementById("profileDropdown");
+
+    const displayId = document.getElementById("displayId");
+    const displayName = document.getElementById("displayName");
+    const displayLastName = document.getElementById("displayLastName");
+    const displayLogin = document.getElementById("displayLogin");
+
+    if (nameDisplay && userName) nameDisplay.textContent = userName;
+    if (avatarDisplay && userName)
+        avatarDisplay.textContent = userName.substring(0, 2).toUpperCase();
+
+    if (displayId) displayId.textContent = userId || "-";
+    if (displayName) displayName.textContent = userName || "-";
+    if (displayLastName)
+        displayLastName.textContent =
+            `${userPaterno || ""} ${userMaterno || ""}`.trim() || "-";
+    if (displayLogin) displayLogin.textContent = userLogin || "-";
+
+    // Toggle Dropdown
+    profileContainer?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown?.classList.toggle("active");
+    });
+
+    window.addEventListener("click", () => {
+        dropdown?.classList.remove("active");
+    });
+</script>

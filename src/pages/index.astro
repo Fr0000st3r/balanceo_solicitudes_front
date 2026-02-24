@@ -6,7 +6,7 @@ import Layout from "../layouts/Layout.astro";
 	<main class="login-container">
 		<div class="login-card animate-fade-in">
 			<header class="login-header">
-				<div class="logo-placeholder">PAT</div>
+				<div class="logo-placeholder">GS</div>
 				<h1>Bienvenido</h1>
 				<p>Ingresa tus credenciales para acceder al portal</p>
 			</header>
@@ -40,7 +40,7 @@ import Layout from "../layouts/Layout.astro";
 			</form>
 
 			<footer class="login-footer">
-				<p>Prueba Técnica - Gestión de Solicitudes</p>
+				<p>Gestión de Solicitudes</p>
 			</footer>
 		</div>
 	</main>
@@ -160,7 +160,10 @@ import Layout from "../layouts/Layout.astro";
 		try {
 			const data = await auth.login({ login, password });
 			localStorage.setItem("user_id", data.id_usuario);
-			localStorage.setItem("user_name", login); // Store login as name for now
+			localStorage.setItem("user_login", data.login);
+			localStorage.setItem("user_name", data.nombre);
+			localStorage.setItem("user_paterno", data.paterno);
+			localStorage.setItem("user_materno", data.materno);
 			window.location.href = "/dashboard";
 		} catch (error: any) {
 			errorMsg.textContent = error.message || "Error al iniciar sesión";

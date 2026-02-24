@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Sidebar from "../components/Sidebar.astro";
+import UserBadge from "../components/UserBadge.astro";
 ---
 
 <Layout title="Reportes">
@@ -15,13 +16,16 @@ import Sidebar from "../components/Sidebar.astro";
                         Carga de trabajo por usuario y exportación de datos
                     </p>
                 </div>
-                <div class="export-actions">
-                    <button class="btn btn-secondary" id="exportCsv"
-                        >📄 Exportar CSV</button
-                    >
-                    <button class="btn btn-secondary" id="exportHtml"
-                        >🌐 Exportar HTML</button
-                    >
+                <div class="header-actions">
+                    <div class="export-actions">
+                        <button class="btn btn-secondary" id="exportCsv"
+                            >📄 Exportar CSV</button
+                        >
+                        <button class="btn btn-secondary" id="exportHtml"
+                            >🌐 Exportar HTML</button
+                        >
+                    </div>
+                    <UserBadge />
                 </div>
             </header>
 
@@ -108,10 +112,17 @@ import Sidebar from "../components/Sidebar.astro";
             '<tr><td colspan="4" style="text-align: center;">Cargando...</td></tr>';
 
         try {
-            const active = statusFilter.value;
-            const anio = anioFilter.value;
-            const response = await reportes.getPorUsuario();
+            const params = {
+                anio: anioFilter.value,
+                activo: statusFilter.value,
+            };
+            const response = await reportes.getPorUsuario(params);
             const data = response.data || [];
+
+            if (data.length === 0) {
+                reportTable.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-style: italic;">(!) No se encontraron solicitudes asignadas en el periodo.</td></tr>`;
+                return;
+            }
 
             reportTable.innerHTML = data
                 .map(
@@ -155,7 +166,11 @@ import Sidebar from "../components/Sidebar.astro";
         content.innerHTML = "Cargando...";
 
         try {
-            const data = await reportes.getDetallePorUsuario(userId);
+            const params = {
+                anio: anioFilter.value,
+                activo: statusFilter.value,
+            };
+            const data = await reportes.getDetallePorUsuario(userId, params);
             const sols = data.solicitudes.data || [];
 
             content.innerHTML = `
@@ -193,12 +208,14 @@ import Sidebar from "../components/Sidebar.astro";
 
     // Export Handlers
     document.getElementById("exportCsv")?.addEventListener("click", () => {
-        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/csv?anio=${anioFilter.value}&activo=${statusFilter.value}`;
+        const userId = localStorage.getItem("user_id");
+        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/csv?anio=${anioFilter.value}&activo=${statusFilter.value}&user_id=${userId}`;
         window.open(url, "_blank");
     });
 
     document.getElementById("exportHtml")?.addEventListener("click", () => {
-        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/html?anio=${anioFilter.value}&activo=${statusFilter.value}`;
+        const userId = localStorage.getItem("user_id");
+        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/html?anio=${anioFilter.value}&activo=${statusFilter.value}&user_id=${userId}`;
         window.open(url, "_blank");
     });
 

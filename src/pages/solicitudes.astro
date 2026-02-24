@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Sidebar from "../components/Sidebar.astro";
+import UserBadge from "../components/UserBadge.astro";
 ---
 
 <Layout title="Solicitudes">
@@ -15,9 +16,12 @@ import Sidebar from "../components/Sidebar.astro";
                         Administra y crea nuevas solicitudes de servicio
                     </p>
                 </div>
-                <button class="btn btn-primary" id="openModalBtn">
-                    <span>+</span> Nueva Solicitud
-                </button>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="openModalBtn">
+                        <span>+</span> Nueva Solicitud
+                    </button>
+                    <UserBadge />
+                </div>
             </header>
 
             <section class="card animate-fade-in">
@@ -164,6 +168,11 @@ import Sidebar from "../components/Sidebar.astro";
             const response = await solicitudes.getAll(params);
             const data = response.data || [];
 
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-style: italic;">(!) No se encontraron solicitudes asignadas en el periodo.</td></tr>`;
+                return;
+            }
+
             tableBody.innerHTML = data
                 .map(
                     (sol: any) => `
@@ -239,12 +248,31 @@ import Sidebar from "../components/Sidebar.astro";
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
+        const submitBtn = form.querySelector(
+            'button[type="submit"]',
+        ) as HTMLButtonElement;
+        const originalText = submitBtn.textContent;
+
         try {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Guardando...";
+
             await solicitudes.create(data);
+
+            (window as any).showToast("Solicitud creada con éxito");
+
             hideModal();
+            currentPage = 1;
             loadSolicitudes(1);
         } catch (err: any) {
-            alert("Error: " + err.message);
+            console.error(err);
+            (window as any).showToast(
+                err.message || "Error al crear la solicitud",
+                "error",
+            );
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     });
 
@@ -309,73 +337,7 @@ import Sidebar from "../components/Sidebar.astro";
         border-radius: var(--radius);
         background: white;
     }
-    .btn-page.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-    .btn-page.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: var(--transition);
-        z-index: 1000;
-    }
-    .modal-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-    .modal {
-        background: white;
-        padding: 2rem;
-        border-radius: var(--radius-lg);
-        width: 100%;
-        max-width: 500px;
-        transform: translateY(20px);
-        transition: var(--transition);
-    }
-    .modal-overlay.active .modal {
-        transform: translateY(0);
-    }
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    .close-btn {
-        font-size: 1.5rem;
-        color: var(--text-muted);
-    }
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-    }
-
     .btn-cancel {
-        background: none;
-        border: none;
         color: var(--danger);
         font-weight: 600;
         cursor: pointer;

@@ -1,5 +1,5 @@
 ---
-import '../styles/global.css';
+import "../styles/global.css";
 
 interface Props {
 	title: string;
@@ -12,17 +12,63 @@ const { title } = Astro.props;
 <html lang="es">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Front-end for prueba_tecnica_total_pat API" />
+		<meta
+			name="description"
+			content="Front-end for prueba_tecnica_total_pat API"
+		/>
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title} | Portal de Solicitudes</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+
+		<script is:inline>
+			// Global Auth Guard
+			const userId = localStorage.getItem("user_id");
+			const isLoginPage = window.location.pathname === "/";
+
+			if (userId && isLoginPage) {
+				window.location.href = "/dashboard";
+			} else if (!userId && !isLoginPage) {
+				window.location.href = "/";
+			}
+		</script>
 	</head>
 	<body>
 		<slot />
+		<div id="toast-container" class="toast-container"></div>
+
+		<script is:inline>
+			window.showToast = (message, type = "success") => {
+				const container = document.getElementById("toast-container");
+				if (!container) return;
+
+				const toast = document.createElement("div");
+				toast.className = `toast toast-${type}`;
+				toast.innerHTML = `
+					<div class="toast-content">
+						<span class="toast-icon">${type === "success" ? "✅" : "❌"}</span>
+						<span class="toast-message">${message}</span>
+					</div>
+				`;
+
+				container.appendChild(toast);
+
+				// Trigger animation
+				setTimeout(() => toast.classList.add("show"), 10);
+
+				// Remove after 3s
+				setTimeout(() => {
+					toast.classList.remove("show");
+					setTimeout(() => toast.remove(), 300);
+				}, 3000);
+			};
+		</script>
 	</body>
 </html>
 

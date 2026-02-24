@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Sidebar from "../components/Sidebar.astro";
+import UserBadge from "../components/UserBadge.astro";
 ---
 
 <Layout title="Configuración">
@@ -15,9 +16,12 @@ import Sidebar from "../components/Sidebar.astro";
                         Ajusta las reglas de balanceo y distribución de trabajo
                     </p>
                 </div>
-                <button class="btn btn-primary" id="newConfigBtn"
-                    >+ Nueva Regla</button
-                >
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="newConfigBtn"
+                        >+ Nueva Regla</button
+                    >
+                    <UserBadge />
+                </div>
             </header>
 
             <div class="config-grid animate-fade-in">

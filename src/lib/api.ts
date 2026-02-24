@@ -55,8 +55,15 @@ export const solicitudes = {
 };
 
 export const reportes = {
-    getPorUsuario: () => apiFetch('/reportes/solicitudes-por-usuario'),
-    getDetallePorUsuario: (id: string | number) => apiFetch(`/reportes/solicitudes-por-usuario/${id}`),
+    getPorUsuario: (params: any = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiFetch(`/reportes/solicitudes-por-usuario?${query}`);
+    },
+    getPorDia: () => apiFetch('/reportes/solicitudes-por-dia'),
+    getDetallePorUsuario: (id: string | number, params: any = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return apiFetch(`/reportes/solicitudes-por-usuario/${id}?${query}`);
+    },
 };
 
 export const configuracion = {

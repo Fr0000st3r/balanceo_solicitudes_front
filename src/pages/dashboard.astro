@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Sidebar from "../components/Sidebar.astro";
+import UserBadge from "../components/UserBadge.astro";
 ---
 
 <Layout title="Dashboard">
@@ -15,13 +16,10 @@ import Sidebar from "../components/Sidebar.astro";
                         Resumen general de las solicitudes y reportes
                     </p>
                 </div>
-                <div class="user-profile">
-                    <div class="avatar" id="userAvatar">??</div>
-                    <span id="userNameDisplay">Usuario</span>
-                </div>
+                <UserBadge />
             </header>
 
-            <section class="stats-grid animate-fade-in">
+            <section class="dashboard-grid animate-fade-in">
                 <div class="stat-card">
                     <span class="stat-icon blue">📝</span>
                     <div class="stat-info">
@@ -57,33 +55,14 @@ import Sidebar from "../components/Sidebar.astro";
                 style="animation-delay: 0.1s"
             >
                 <div class="card">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2>Solicitudes Recientes</h2>
-                        <a href="/solicitudes" class="btn btn-secondary"
-                            >Ver todas</a
-                        >
+                    <div class="flex justify-between items-center mb-6">
+                        <h2>Solicitudes los últimos 7 días</h2>
                     </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Solicitante</th>
-                                    <th>Fecha</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recentSolicitudesTable">
-                                <tr>
-                                    <td
-                                        colspan="5"
-                                        style="text-align: center; padding: 2rem;"
-                                        >Cargando solicitudes...</td
-                                    >
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div
+                        class="chart-container"
+                        style="position: relative; height:300px; width:100%"
+                    >
+                        <canvas id="solicitudesChart"></canvas>
                     </div>
                 </div>
             </section>
@@ -92,26 +71,17 @@ import Sidebar from "../components/Sidebar.astro";
 </Layout>
 
 <script>
-    import { solicitudes, reportes } from "../lib/api";
+    import { reportes } from "../lib/api";
+    import Chart from "chart.js/auto";
 
-    // Auth Check
-    const userId = localStorage.getItem("user_id");
-    const userName = localStorage.getItem("user_name");
-    if (!userId) {
-        window.location.href = "/";
-    }
-
-    // Update Profile
-    const nameDisplay = document.getElementById("userNameDisplay");
-    const avatarDisplay = document.getElementById("userAvatar");
-    if (nameDisplay && userName) nameDisplay.textContent = userName;
-    if (avatarDisplay && userName)
-        avatarDisplay.textContent = userName.substring(0, 2).toUpperCase();
+    let chartInstance: any = null;
 
     async function loadDashboardData() {
         try {
             // Fetch summary
-            const usersSummary = await reportes.getPorUsuario();
+            const response = await reportes.getPorUsuario();
+            const usersSummary = response.data || response;
+
             const total = usersSummary.reduce(
                 (acc: number, curr: any) => acc + (curr.total_solicitudes || 0),
                 0,
@@ -133,60 +103,66 @@ import Sidebar from "../components/Sidebar.astro";
             if (completedEl)
                 completedEl.textContent = (total - cancelled).toString();
 
-            // Fetch recent
-            const recent = await solicitudes.getAll({ per_page: 5 });
-            const tableBody = document.getElementById("recentSolicitudesTable");
-
-            if (tableBody) {
-                const data = recent.data || recent; // Handle both paginated and direct array
-                if (Array.isArray(data) && data.length > 0) {
-                    tableBody.innerHTML = data
-                        .map(
-                            (sol: any) => `
-						<tr>
-							<td>#${sol.id_solicitud}</td>
-							<td>${sol.nombre_Solicitante} ${sol.paterno_Solicitante}</td>
-							<td>${new Date(sol.fecha_Solicitud).toLocaleDateString()}</td>
-							<td>
-								<span class="badge ${sol.activo ? "badge-success" : "badge-danger"}">
-									${sol.activo ? "Activa" : "Cancelada"}
-								</span>
-							</td>
-							<td>
-								${sol.activo ? `<button class="btn-cancel" data-id="${sol.id_solicitud}">Cancelar</button>` : "-"}
-							</td>
-						</tr>
-					`,
-                        )
-                        .join("");
-
-                    // Add cancel listeners
-                    document.querySelectorAll(".btn-cancel").forEach((btn) => {
-                        btn.addEventListener("click", async (e) => {
-                            const id = (e.target as HTMLElement).dataset.id;
-                            if (
-                                id &&
-                                confirm(
-                                    "¿Estás seguro de cancelar esta solicitud?",
-                                )
-                            ) {
-                                try {
-                                    await solicitudes.cancel(id);
-                                    loadDashboardData();
-                                } catch (err) {
-                                    alert("Error al cancelar");
-                                }
-                            }
-                        });
-                    });
-                } else {
-                    tableBody.innerHTML =
-                        '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No hay solicitudes registradas</td></tr>';
-                }
-            }
+            // Fetch Daily Data for Chart
+            const dailyData = await (reportes as any).getPorDia();
+            renderChart(dailyData);
         } catch (error) {
             console.error("Error loading dashboard:", error);
         }
+    }
+
+    function renderChart(data: any[]) {
+        const ctx = document.getElementById(
+            "solicitudesChart",
+        ) as HTMLCanvasElement;
+        if (!ctx) return;
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: data.map((d) => {
+                    const date = new Date(d.fecha);
+                    return date.toLocaleDateString("es-ES", {
+                        weekday: "short",
+                        day: "numeric",
+                    });
+                }),
+                datasets: [
+                    {
+                        label: "Solicitudes",
+                        data: data.map((d) => d.total),
+                        borderColor: "#3b82f6",
+                        backgroundColor: "rgba(59, 130, 246, 0.1)",
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: "#3b82f6",
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { borderDash: [5, 5] } as any,
+                    },
+                    x: {
+                        grid: { display: false },
+                    },
+                },
+            },
+        });
     }
 
     loadDashboardData();
@@ -196,186 +172,161 @@ import Sidebar from "../components/Sidebar.astro";
     .app-layout {
         display: flex;
         min-height: 100vh;
+        background-color: #fce7f310; /* Very subtle tint */
     }
 
     .main-content {
         flex: 1;
-        padding: 2rem 3rem;
+        padding: 2.5rem 4rem;
         background: var(--bg-main);
+        overflow-y: auto;
     }
 
     .content-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .content-header h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        color: var(--text-main);
     }
 
     .subtitle {
         color: var(--text-muted);
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
+        font-size: 1rem;
+        margin-top: 0.5rem;
     }
 
-    .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.5rem 1rem;
-        background: white;
-        border-radius: 99px;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border);
-    }
-
-    .avatar {
-        width: 32px;
-        height: 32px;
-        background: var(--primary-light);
-        color: var(--primary);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.75rem;
-    }
-
-    .stats-grid {
+    /* Grid Layout */
+    .dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .stat-card {
         background: white;
-        padding: 1.5rem;
-        border-radius: var(--radius-lg);
+        padding: 1.75rem;
+        border-radius: 1.25rem;
         border: 1px solid var(--border);
-        box-shadow: var(--shadow);
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
         display: flex;
-        align-items: center;
+        flex-direction: column;
         gap: 1.25rem;
-        transition: var(--transition);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(
+            135deg,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 100%
+        );
+        pointer-events: none;
     }
 
     .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-5px);
+        box-shadow:
+            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+            0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: var(--primary);
     }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 54px;
+        height: 54px;
+        border-radius: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .stat-icon.blue {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #eff6ff;
+        color: #2563eb;
     }
     .stat-icon.yellow {
-        background: #fef3c7;
-        color: #92400e;
+        background: #fffbeb;
+        color: #d97706;
     }
     .stat-icon.green {
-        background: #d1fae5;
-        color: #065f46;
+        background: #f0fdf4;
+        color: #16a34a;
     }
     .stat-icon.red {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
     }
 
     .stat-label {
-        display: block;
         font-size: 0.875rem;
+        font-weight: 600;
         color: var(--text-muted);
-        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.5rem;
     }
 
     .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 2rem;
+        font-weight: 800;
         color: var(--text-main);
+        line-height: 1;
     }
 
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0.5rem;
+    /* Activity Section */
+    .card {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2.25rem;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
     }
 
-    .data-table th {
-        text-align: left;
-        padding: 1rem;
-        border-bottom: 2px solid var(--bg-main);
-        color: var(--text-muted);
-        font-weight: 600;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .data-table td {
-        padding: 1rem;
-        border-bottom: 1px solid var(--bg-main);
-        font-size: 0.875rem;
-    }
-
-    .data-table tr:hover td {
-        background: var(--primary-light);
-    }
-
-    .badge {
-        padding: 0.25rem 0.625rem;
-        border-radius: 99px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    .badge-warning {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    .badge-danger {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .btn-cancel {
-        background: none;
-        border: none;
-        color: var(--danger);
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 0;
-    }
-    .btn-cancel:hover {
-        text-decoration: underline;
+    @media (max-width: 1280px) {
+        .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     @media (max-width: 1024px) {
-        .app-layout {
-            flex-direction: column;
-        }
-        .sidebar {
-            width: 100%;
-            height: auto;
-            position: sticky;
-            top: 0;
-        }
         .main-content {
-            padding: 1.5rem;
+            padding: 2rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .content-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1.5rem;
         }
     }
 </style>
