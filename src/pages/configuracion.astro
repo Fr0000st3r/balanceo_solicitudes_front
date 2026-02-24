@@ -1,0 +1,301 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Sidebar from "../components/Sidebar.astro";
+---
+
+<Layout title="Configuración">
+    <div class="app-layout">
+        <Sidebar active="configuración" />
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>Configuración de Carga</h1>
+                    <p class="subtitle">
+                        Ajusta las reglas de balanceo y distribución de trabajo
+                    </p>
+                </div>
+                <button class="btn btn-primary" id="newConfigBtn"
+                    >+ Nueva Regla</button
+                >
+            </header>
+
+            <div class="config-grid animate-fade-in">
+                <section class="card">
+                    <h2>Reglas Activas</h2>
+                    <div class="table-responsive mt-4">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Proporción</th>
+                                    <th>Diferencia</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="configTableBody">
+                                <tr
+                                    ><td
+                                        colspan="4"
+                                        style="text-align: center; padding: 2rem;"
+                                        >Cargando...</td
+                                    ></tr
+                                >
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="card info-card">
+                    <h2>Información de Balanceo</h2>
+                    <p>
+                        El sistema utiliza estas reglas para determinar cómo se
+                        asignan las nuevas solicitudes entre los usuarios
+                        activos.
+                    </p>
+                    <ul class="info-list mt-4">
+                        <li>
+                            <strong>Proporción:</strong> Factor de peso para la carga.
+                        </li>
+                        <li>
+                            <strong>Diferencia:</strong> Margen permitido entre usuarios.
+                        </li>
+                        <li>
+                            <strong>Balanceo Automático:</strong> Siempre se asignará
+                            al usuario con menor carga total en el año corriente.
+                        </li>
+                    </ul>
+                </section>
+            </div>
+
+            <!-- Modal New Config -->
+            <div class="modal-overlay" id="configModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2>Nueva Regla de Carga</h2>
+                        <button id="closeModal" class="close-btn"
+                            >&times;</button
+                        >
+                    </div>
+                    <form id="configForm" class="modal-body">
+                        <div class="form-group">
+                            <label for="anio">Año</label>
+                            <input
+                                type="number"
+                                id="anio"
+                                name="anio"
+                                value="2026"
+                                required
+                            />
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="proporcion">Proporción</label>
+                                <input
+                                    type="number"
+                                    id="proporcion"
+                                    name="proporcion"
+                                    value="1"
+                                    min="1"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label for="diferencia">Diferencia Máxima</label
+                                >
+                                <input
+                                    type="number"
+                                    id="diferencia"
+                                    name="diferencia"
+                                    value="0"
+                                    min="0"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div class="modal-footer mt-4">
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                id="cancelBtn">Cancelar</button
+                            >
+                            <button type="submit" class="btn btn-primary"
+                                >Crear Regla</button
+                            >
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</Layout>
+
+<script>
+    import { configuracion } from "../lib/api";
+
+    const tableBody = document.getElementById("configTableBody");
+    const modal = document.getElementById("configModal");
+    const form = document.getElementById("configForm") as HTMLFormElement;
+
+    async function loadConfigs() {
+        if (!tableBody) return;
+        try {
+            const res = await configuracion.getAll();
+            const data = res.data || [];
+
+            tableBody.innerHTML = data
+                .map(
+                    (c: any) => `
+				<tr>
+					<td><strong>${c.anio}</strong></td>
+					<td>${c.proporcion}</td>
+					<td>${c.diferencia}</td>
+					<td>
+						<span class="badge ${c.activo ? "badge-success" : "badge-danger"}">
+							${c.activo ? "Activa" : "Inactiva"}
+						</span>
+					</td>
+				</tr>
+			`,
+                )
+                .join("");
+        } catch (err) {
+            tableBody.innerHTML =
+                '<tr><td colspan="4" style="text-align: center;">Error al cargar</td></tr>';
+        }
+    }
+
+    document
+        .getElementById("newConfigBtn")
+        ?.addEventListener("click", () => modal?.classList.add("active"));
+    document
+        .getElementById("closeModal")
+        ?.addEventListener("click", () => modal?.classList.remove("active"));
+    document
+        .getElementById("cancelBtn")
+        ?.addEventListener("click", () => modal?.classList.remove("active"));
+
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await configuracion.create(data);
+            modal?.classList.remove("active");
+            form.reset();
+            loadConfigs();
+        } catch (err: any) {
+            alert("Error: " + err.message);
+        }
+    });
+
+    loadConfigs();
+</script>
+
+<style>
+    .app-layout {
+        display: flex;
+        min-height: 100vh;
+    }
+    .main-content {
+        flex: 1;
+        padding: 2rem 3rem;
+        background: var(--bg-main);
+    }
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .config-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+    .info-card {
+        background: var(--primary-light);
+        border-color: var(--primary);
+    }
+    .info-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .info-list li {
+        position: relative;
+        padding-left: 1.5rem;
+        font-size: 0.875rem;
+    }
+    .info-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    /* Modal Styles inherited or repeated as needed for standalone isolation */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        z-index: 1000;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 500px;
+        transform: translateY(20px);
+        transition: var(--transition);
+    }
+    .modal-overlay.active .modal {
+        transform: translateY(0);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .close-btn {
+        font-size: 1.5rem;
+        color: var(--text-muted);
+        padding: 0.5rem;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    @media (max-width: 1024px) {
+        .config-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

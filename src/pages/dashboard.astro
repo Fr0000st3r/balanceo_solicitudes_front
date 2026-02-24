@@ -1,0 +1,381 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Sidebar from "../components/Sidebar.astro";
+---
+
+<Layout title="Dashboard">
+    <div class="app-layout">
+        <Sidebar active="dashboard" />
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p class="subtitle">
+                        Resumen general de las solicitudes y reportes
+                    </p>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar" id="userAvatar">??</div>
+                    <span id="userNameDisplay">Usuario</span>
+                </div>
+            </header>
+
+            <section class="stats-grid animate-fade-in">
+                <div class="stat-card">
+                    <span class="stat-icon blue">📝</span>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Solicitudes</span>
+                        <span class="stat-value" id="totalCount">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon yellow">⏳</span>
+                    <div class="stat-info">
+                        <span class="stat-label">Activas</span>
+                        <span class="stat-value" id="activeCount">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon green">✅</span>
+                    <div class="stat-info">
+                        <span class="stat-label">Completadas</span>
+                        <span class="stat-value" id="completedCount">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-icon red">❌</span>
+                    <div class="stat-info">
+                        <span class="stat-label">Canceladas</span>
+                        <span class="stat-value" id="cancelledCount">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                class="recent-activity mt-4 animate-fade-in"
+                style="animation-delay: 0.1s"
+            >
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2>Solicitudes Recientes</h2>
+                        <a href="/solicitudes" class="btn btn-secondary"
+                            >Ver todas</a
+                        >
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Solicitante</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentSolicitudesTable">
+                                <tr>
+                                    <td
+                                        colspan="5"
+                                        style="text-align: center; padding: 2rem;"
+                                        >Cargando solicitudes...</td
+                                    >
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</Layout>
+
+<script>
+    import { solicitudes, reportes } from "../lib/api";
+
+    // Auth Check
+    const userId = localStorage.getItem("user_id");
+    const userName = localStorage.getItem("user_name");
+    if (!userId) {
+        window.location.href = "/";
+    }
+
+    // Update Profile
+    const nameDisplay = document.getElementById("userNameDisplay");
+    const avatarDisplay = document.getElementById("userAvatar");
+    if (nameDisplay && userName) nameDisplay.textContent = userName;
+    if (avatarDisplay && userName)
+        avatarDisplay.textContent = userName.substring(0, 2).toUpperCase();
+
+    async function loadDashboardData() {
+        try {
+            // Fetch summary
+            const usersSummary = await reportes.getPorUsuario();
+            const total = usersSummary.reduce(
+                (acc: number, curr: any) => acc + (curr.total_solicitudes || 0),
+                0,
+            );
+            const cancelled = usersSummary.reduce(
+                (acc: number, curr: any) =>
+                    acc + (curr.solicitudes_canceladas || 0),
+                0,
+            );
+
+            const totalEl = document.getElementById("totalCount");
+            const cancelledEl = document.getElementById("cancelledCount");
+            const activeEl = document.getElementById("activeCount");
+            const completedEl = document.getElementById("completedCount");
+
+            if (totalEl) totalEl.textContent = total.toString();
+            if (cancelledEl) cancelledEl.textContent = cancelled.toString();
+            if (activeEl) activeEl.textContent = (total - cancelled).toString();
+            if (completedEl)
+                completedEl.textContent = (total - cancelled).toString();
+
+            // Fetch recent
+            const recent = await solicitudes.getAll({ per_page: 5 });
+            const tableBody = document.getElementById("recentSolicitudesTable");
+
+            if (tableBody) {
+                const data = recent.data || recent; // Handle both paginated and direct array
+                if (Array.isArray(data) && data.length > 0) {
+                    tableBody.innerHTML = data
+                        .map(
+                            (sol: any) => `
+						<tr>
+							<td>#${sol.id_solicitud}</td>
+							<td>${sol.nombre_Solicitante} ${sol.paterno_Solicitante}</td>
+							<td>${new Date(sol.fecha_Solicitud).toLocaleDateString()}</td>
+							<td>
+								<span class="badge ${sol.activo ? "badge-success" : "badge-danger"}">
+									${sol.activo ? "Activa" : "Cancelada"}
+								</span>
+							</td>
+							<td>
+								${sol.activo ? `<button class="btn-cancel" data-id="${sol.id_solicitud}">Cancelar</button>` : "-"}
+							</td>
+						</tr>
+					`,
+                        )
+                        .join("");
+
+                    // Add cancel listeners
+                    document.querySelectorAll(".btn-cancel").forEach((btn) => {
+                        btn.addEventListener("click", async (e) => {
+                            const id = (e.target as HTMLElement).dataset.id;
+                            if (
+                                id &&
+                                confirm(
+                                    "¿Estás seguro de cancelar esta solicitud?",
+                                )
+                            ) {
+                                try {
+                                    await solicitudes.cancel(id);
+                                    loadDashboardData();
+                                } catch (err) {
+                                    alert("Error al cancelar");
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    tableBody.innerHTML =
+                        '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No hay solicitudes registradas</td></tr>';
+                }
+            }
+        } catch (error) {
+            console.error("Error loading dashboard:", error);
+        }
+    }
+
+    loadDashboardData();
+</script>
+
+<style>
+    .app-layout {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 2rem 3rem;
+        background: var(--bg-main);
+    }
+
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: white;
+        border-radius: 99px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-light);
+        color: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: var(--transition);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.blue {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .stat-icon.yellow {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .stat-icon.green {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .stat-icon.red {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+    }
+
+    .data-table th {
+        text-align: left;
+        padding: 1rem;
+        border-bottom: 2px solid var(--bg-main);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--bg-main);
+        font-size: 0.875rem;
+    }
+
+    .data-table tr:hover td {
+        background: var(--primary-light);
+    }
+
+    .badge {
+        padding: 0.25rem 0.625rem;
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-cancel {
+        background: none;
+        border: none;
+        color: var(--danger);
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+    }
+    .btn-cancel:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 1024px) {
+        .app-layout {
+            flex-direction: column;
+        }
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: sticky;
+            top: 0;
+        }
+        .main-content {
+            padding: 1.5rem;
+        }
+    }
+</style>

@@ -1,0 +1,392 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Sidebar from "../components/Sidebar.astro";
+---
+
+<Layout title="Solicitudes">
+    <div class="app-layout">
+        <Sidebar active="solicitudes" />
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>Gestión de Solicitudes</h1>
+                    <p class="subtitle">
+                        Administra y crea nuevas solicitudes de servicio
+                    </p>
+                </div>
+                <button class="btn btn-primary" id="openModalBtn">
+                    <span>+</span> Nueva Solicitud
+                </button>
+            </header>
+
+            <section class="card animate-fade-in">
+                <div class="filters-bar mb-4">
+                    <div class="search-input">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Buscar por nombre..."
+                        />
+                    </div>
+                    <select id="statusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="1">Activas</option>
+                        <option value="0">Canceladas</option>
+                    </select>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Solicitante</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Asignado a (ID)</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="solicitudesTableBody">
+                            <tr
+                                ><td
+                                    colspan="6"
+                                    style="text-align: center; padding: 2rem;"
+                                    >Cargando...</td
+                                ></tr
+                            >
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination mt-4" id="pagination">
+                    <!-- Pagination buttons will be injected here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Nueva Solicitud -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Nueva Solicitud</h2>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            <form id="createSolicitudForm" class="modal-body">
+                <div class="form-group">
+                    <label for="nombre">Nombre(s)</label>
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre_Solicitante"
+                        required
+                    />
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="paterno">Apellido Paterno</label>
+                        <input
+                            type="text"
+                            id="paterno"
+                            name="paterno_Solicitante"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="materno">Apellido Materno</label>
+                        <input
+                            type="text"
+                            id="materno"
+                            name="materno_Solicitante"
+                            required
+                        />
+                    </div>
+                </div>
+                <div class="modal-footer mt-4">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        id="cancelBtn">Cancelar</button
+                    >
+                    <button type="submit" class="btn btn-primary"
+                        >Guardar Solicitud</button
+                    >
+                </div>
+            </form>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { solicitudes } from "../lib/api";
+
+    let currentPage = 1;
+
+    const modal = document.getElementById("modalOverlay");
+    const openModalBtn = document.getElementById("openModalBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const form = document.getElementById(
+        "createSolicitudForm",
+    ) as HTMLFormElement;
+    const tableBody = document.getElementById("solicitudesTableBody");
+    const searchInput = document.getElementById(
+        "searchInput",
+    ) as HTMLInputElement;
+    const statusFilter = document.getElementById(
+        "statusFilter",
+    ) as HTMLSelectElement;
+
+    // Modal Controls
+    openModalBtn?.addEventListener("click", () =>
+        modal?.classList.add("active"),
+    );
+    const hideModal = () => {
+        modal?.classList.remove("active");
+        form?.reset();
+    };
+    closeModalBtn?.addEventListener("click", hideModal);
+    cancelBtn?.addEventListener("click", hideModal);
+
+    async function loadSolicitudes(page = 1) {
+        if (!tableBody) return;
+
+        const params = {
+            page: page.toString(),
+            q: searchInput.value,
+            activo: statusFilter.value,
+        };
+
+        try {
+            const response = await solicitudes.getAll(params);
+            const data = response.data || [];
+
+            tableBody.innerHTML = data
+                .map(
+                    (sol: any) => `
+				<tr>
+					<td>#${sol.id_solicitud}</td>
+					<td>${sol.nombre_Solicitante} ${sol.paterno_Solicitante} ${sol.materno_Solicitante}</td>
+					<td>${new Date(sol.fecha_Solicitud).toLocaleDateString()}</td>
+					<td>
+						<span class="badge ${sol.activo ? "badge-success" : "badge-danger"}">
+							${sol.activo ? "Activa" : "Cancelada"}
+						</span>
+					</td>
+					<td>ID: ${sol.id_Usuario_Asignado}</td>
+					<td>
+						${sol.activo ? `<button class="btn-cancel" data-id="${sol.id_solicitud}">Cancelar</button>` : "-"}
+					</td>
+				</tr>
+			`,
+                )
+                .join("");
+
+            // Setup cancel buttons
+            document.querySelectorAll(".btn-cancel").forEach((btn) => {
+                btn.addEventListener("click", async (e) => {
+                    const id = (e.target as HTMLElement).dataset.id;
+                    if (id && confirm("¿Deseas cancelar esta solicitud?")) {
+                        await solicitudes.cancel(id);
+                        loadSolicitudes(currentPage);
+                    }
+                });
+            });
+
+            renderPagination(response);
+        } catch (error) {
+            tableBody.innerHTML =
+                '<tr><td colspan="6" style="text-align: center;">Error al cargar datos</td></tr>';
+        }
+    }
+
+    function renderPagination(response: any) {
+        const pagination = document.getElementById("pagination");
+        if (!pagination || !response.links) return;
+
+        pagination.innerHTML = response.links
+            .map(
+                (link: any) => `
+			<button class="btn-page ${link.active ? "active" : ""} ${!link.url ? "disabled" : ""}" 
+					data-url="${link.url}">
+				${link.label.replace("&laquo; Previous", "←").replace("Next &raquo;", "→")}
+			</button>
+		`,
+            )
+            .join("");
+
+        pagination.querySelectorAll(".btn-page").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const url = (e.target as HTMLElement).dataset.url;
+                if (url) {
+                    const urlObj = new URL(url);
+                    const page = urlObj.searchParams.get("page");
+                    if (page) {
+                        currentPage = parseInt(page);
+                        loadSolicitudes(currentPage);
+                    }
+                }
+            });
+        });
+    }
+
+    // Form Submission
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await solicitudes.create(data);
+            hideModal();
+            loadSolicitudes(1);
+        } catch (err: any) {
+            alert("Error: " + err.message);
+        }
+    });
+
+    // Filters
+    let timeout: any;
+    searchInput?.addEventListener("input", () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => loadSolicitudes(1), 500);
+    });
+    statusFilter?.addEventListener("change", () => loadSolicitudes(1));
+
+    loadSolicitudes();
+</script>
+
+<style>
+    .app-layout {
+        display: flex;
+        min-height: 100vh;
+    }
+    .main-content {
+        flex: 1;
+        padding: 2rem 3rem;
+        background: var(--bg-main);
+    }
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .filters-bar {
+        display: flex;
+        gap: 1rem;
+    }
+    .search-input {
+        position: relative;
+        flex: 1;
+    }
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+    .search-input input {
+        padding-left: 2.5rem;
+    }
+    .filters-bar select {
+        width: 200px;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .btn-page {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: white;
+    }
+    .btn-page.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    .btn-page.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+        z-index: 1000;
+    }
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal {
+        background: white;
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+        width: 100%;
+        max-width: 500px;
+        transform: translateY(20px);
+        transition: var(--transition);
+    }
+    .modal-overlay.active .modal {
+        transform: translateY(0);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .close-btn {
+        font-size: 1.5rem;
+        color: var(--text-muted);
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-cancel {
+        background: none;
+        border: none;
+        color: var(--danger);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .filters-bar {
+            flex-direction: column;
+        }
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

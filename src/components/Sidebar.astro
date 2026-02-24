@@ -1,0 +1,143 @@
+---
+const { active } = Astro.props;
+
+const navItems = [
+    { name: "Dashboard", icon: "📊", path: "/dashboard" },
+    { name: "Solicitudes", icon: "📝", path: "/solicitudes" },
+    { name: "Reportes", icon: "📈", path: "/reportes" },
+    { name: "Configuración", icon: "⚙️", path: "/configuracion" },
+];
+---
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo-sm">PAT</div>
+        <span class="brand-name">Portal Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        {
+            navItems.map((item) => (
+                <a
+                    href={item.path}
+                    class={`nav-item ${active === item.name.toLowerCase() ? "active" : ""}`}
+                >
+                    <span class="nav-icon">{item.icon}</span>
+                    <span class="nav-text">{item.name}</span>
+                </a>
+            ))
+        }
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="logout-btn" id="logoutBtn">
+            <span>🚪</span>
+            <span>Cerrar Sesión</span>
+        </button>
+    </div>
+</aside>
+
+<script>
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn?.addEventListener("click", () => {
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("user_name");
+        window.location.href = "/";
+    });
+</script>
+
+<style>
+    .sidebar {
+        width: 260px;
+        background: var(--bg-sidebar);
+        color: var(--text-on-sidebar);
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem 1rem;
+        transition: var(--transition);
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .logo-sm {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.75rem;
+    }
+
+    .brand-name {
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.875rem 1rem;
+        border-radius: var(--radius);
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+    }
+
+    .nav-item.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .nav-icon {
+        font-size: 1.25rem;
+    }
+
+    .sidebar-footer {
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logout-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.875rem 1rem;
+        color: #fca5a5;
+        border-radius: var(--radius);
+        font-weight: 500;
+        text-align: left;
+    }
+
+    .logout-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+</style>
