@@ -2,6 +2,9 @@
 
 Este proyecto es el front-end para el sistema de balanceo y gestión de solicitudes, construido con **Astro** y **JavaScript/TypeScript** vanila para un rendimiento optimizado y una experiencia de usuario fluida.
 
+## 🚀 Demo en Vivo
+Puedes acceder a la versión de producción aquí: [https://balanceo-solicitudes.vercel.app/](https://balanceo-solicitudes.vercel.app/)
+
 ## 📋 Características Principales
 
 - **Dashboard**: Visualización de métricas y estadísticas mediante gráficos dinámicos.
