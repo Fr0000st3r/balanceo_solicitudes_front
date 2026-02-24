@@ -22,6 +22,10 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         const data = await response.json();
 
         if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = '/?error=session_expired';
+            }
             throw new Error(data.message || 'API Error');
         }
 

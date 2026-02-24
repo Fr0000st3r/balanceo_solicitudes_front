@@ -59,14 +59,21 @@ import UserBadge from "../components/UserBadge.astro";
                     </p>
                     <ul class="info-list mt-4">
                         <li>
-                            <strong>Proporción:</strong> Factor de peso para la carga.
+                            <strong>Proporción (Batching):</strong> Determina cuántas
+                            solicitudes se asignan seguidas a un usuario (Round Robin).
+                            Por ejemplo, si es 5, el Usuario A recibirá 5 solicitudes
+                            antes de pasar el turno al Usuario B.
                         </li>
                         <li>
-                            <strong>Diferencia:</strong> Margen permitido entre usuarios.
+                            <strong>Diferencia (Seguridad):</strong> Es el límite
+                            de tolerancia. Si el usuario en turno supera al de menos
+                            carga por más de este valor, el sistema rompe el turno
+                            y asigna al que tiene menos trabajo para equilibrar.
                         </li>
                         <li>
-                            <strong>Balanceo Automático:</strong> Siempre se asignará
-                            al usuario con menor carga total en el año corriente.
+                            <strong>Fallback:</strong> Si no hay una configuración
+                            activa para el año actual, el sistema utiliza automáticamente
+                            la <em>Carga Mínima Absoluta</em> para garantizar la asignación.
                         </li>
                     </ul>
                 </section>
@@ -145,15 +152,21 @@ import UserBadge from "../components/UserBadge.astro";
         if (!tableBody) return;
         try {
             const res = await configuracion.getAll();
-            const data = res.data || [];
+            const data = res.data || (Array.isArray(res) ? res : []);
+
+            if (data.length === 0) {
+                tableBody.innerHTML =
+                    '<tr><td colspan="4" style="text-align: center; padding: 2.5rem; color: var(--text-muted); font-style: italic;">(!) No hay reglas configuradas.</td></tr>';
+                return;
+            }
 
             tableBody.innerHTML = data
                 .map(
                     (c: any) => `
 				<tr>
 					<td><strong>${c.anio}</strong></td>
-					<td>${c.proporcion}</td>
-					<td>${c.diferencia}</td>
+					<td>${c.proporcion} solicitudes</td>
+					<td>±${c.diferencia} de margen</td>
 					<td>
 						<span class="badge ${c.activo ? "badge-success" : "badge-danger"}">
 							${c.activo ? "Activa" : "Inactiva"}
@@ -164,8 +177,9 @@ import UserBadge from "../components/UserBadge.astro";
                 )
                 .join("");
         } catch (err) {
+            console.error(err);
             tableBody.innerHTML =
-                '<tr><td colspan="4" style="text-align: center;">Error al cargar</td></tr>';
+                '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--danger);">⚠️ Error al conectar con el servidor</td></tr>';
         }
     }
 
@@ -183,14 +197,24 @@ import UserBadge from "../components/UserBadge.astro";
         e.preventDefault();
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+        const submitBtn = form.querySelector(
+            'button[type="submit"]',
+        ) as HTMLButtonElement;
 
         try {
+            submitBtn.disabled = true;
             await configuracion.create(data);
+            (window as any).showToast("Regla creada correctamente");
             modal?.classList.remove("active");
             form.reset();
             loadConfigs();
         } catch (err: any) {
-            alert("Error: " + err.message);
+            (window as any).showToast(
+                err.message || "Error al crear la regla",
+                "error",
+            );
+        } finally {
+            submitBtn.disabled = false;
         }
     });
 

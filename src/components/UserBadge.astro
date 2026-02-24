@@ -6,7 +6,9 @@
     <div class="avatar" id="userAvatar">??</div>
     <span id="userNameDisplay">Usuario</span>
     <div class="profile-dropdown" id="profileDropdown">
-        <div class="dropdown-header">Detalles de Usuario</div>
+        <div class="dropdown-header" id="greetingHeader">
+            Detalles de Usuario
+        </div>
         <div class="dropdown-item">
             <strong>ID:</strong>
             <span id="displayId">-</span>
@@ -15,14 +17,6 @@
             <strong>Nombre:</strong>
             <span id="displayName">-</span>
         </div>
-        <div class="dropdown-item">
-            <strong>Apellidos:</strong>
-            <span id="displayLastName">-</span>
-        </div>
-        <div class="dropdown-item">
-            <strong>Login:</strong>
-            <span id="displayLogin">-</span>
-        </div>
     </div>
 </div>
 
@@ -30,6 +24,9 @@
     // Auth & Profile Logic
     const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("user_name");
+    const userLogin = localStorage.getItem("user_login");
+    const userPaterno = localStorage.getItem("user_paterno");
+    const userMaterno = localStorage.getItem("user_materno");
 
     const nameDisplay = document.getElementById("userNameDisplay");
     const avatarDisplay = document.getElementById("userAvatar");
@@ -37,20 +34,28 @@
     const dropdown = document.getElementById("profileDropdown");
 
     const displayId = document.getElementById("displayId");
-    const displayName = document.getElementById("displayName");
-    const displayLastName = document.getElementById("displayLastName");
-    const displayLogin = document.getElementById("displayLogin");
+    const displayNameField = document.getElementById("displayName");
+    const greetingHeader = document.getElementById("greetingHeader");
+
+    // Dynamic Greeting
+    const hour = new Date().getHours();
+    let greeting = "Buenos días";
+    if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
+    if (hour >= 19 || hour < 6) greeting = "Buenas noches";
+
+    if (greetingHeader) {
+        greetingHeader.textContent = `${greeting} @${userLogin || "usuario"}`;
+    }
 
     if (nameDisplay && userName) nameDisplay.textContent = userName;
     if (avatarDisplay && userName)
         avatarDisplay.textContent = userName.substring(0, 2).toUpperCase();
 
     if (displayId) displayId.textContent = userId || "-";
-    if (displayName) displayName.textContent = userName || "-";
-    if (displayLastName)
-        displayLastName.textContent =
-            `${userPaterno || ""} ${userMaterno || ""}`.trim() || "-";
-    if (displayLogin) displayLogin.textContent = userLogin || "-";
+    if (displayNameField)
+        displayNameField.textContent =
+            `${userName || ""} ${userPaterno || ""} ${userMaterno || ""}`.trim() ||
+            "-";
 
     // Toggle Dropdown
     profileContainer?.addEventListener("click", (e) => {
