@@ -10,14 +10,19 @@ import UserBadge from "../components/UserBadge.astro";
 
         <main class="main-content">
             <header class="content-header">
-                <div>
-                    <h1>Reportes y Estadísticas</h1>
-                    <p class="subtitle">
-                        Carga de trabajo por usuario y exportación de datos
-                    </p>
+                <div class="header-title-container">
+                    <button class="mobile-menu-toggle" id="menuToggle"
+                        >☰</button
+                    >
+                    <div>
+                        <h1>Reportes y Estadísticas</h1>
+                        <p class="subtitle hide-mobile">
+                            Carga de trabajo por usuario y exportación de datos
+                        </p>
+                    </div>
                 </div>
                 <div class="header-actions">
-                    <div class="export-actions">
+                    <div class="export-actions hide-mobile">
                         <button class="btn btn-secondary" id="exportCsv"
                             >📄 Exportar CSV</button
                         >
@@ -28,6 +33,14 @@ import UserBadge from "../components/UserBadge.astro";
                     <UserBadge />
                 </div>
             </header>
+            <div class="export-actions show-mobile mb-4" style="display: none;">
+                <button class="btn btn-secondary w-full" id="exportCsvMob"
+                    >📄 CSV</button
+                >
+                <button class="btn btn-secondary w-full" id="exportHtmlMob"
+                    >🌐 HTML</button
+                >
+            </div>
 
             <section class="card animate-fade-in">
                 <div class="filters-bar mb-4">
@@ -226,6 +239,21 @@ import UserBadge from "../components/UserBadge.astro";
     statusFilter?.addEventListener("change", loadReport);
 
     loadReport();
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    menuToggle?.addEventListener("click", () => {
+        sidebar?.classList.toggle("mobile-active");
+    });
+
+    // Mobile Exports logic
+    ["exportCsvMob", "exportHtmlMob"].forEach((id) => {
+        document.getElementById(id)?.addEventListener("click", () => {
+            const originalId = id.replace("Mob", "");
+            document.getElementById(originalId)?.click();
+        });
+    });
 </script>
 
 <style>
@@ -243,6 +271,15 @@ import UserBadge from "../components/UserBadge.astro";
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
+        gap: 1rem;
+    }
+    .header-title-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .w-full {
+        width: 100%;
     }
 
     .filters-bar {

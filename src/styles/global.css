@@ -527,3 +527,117 @@ input:focus {
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
 }
+/* Responsive Breakpoints & Utilities */
+
+/* Mobile First Focus: Hide sidebar by default on small screens */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed !important;
+        left: -260px;
+        transition: transform 0.3s ease;
+    }
+
+    .sidebar.mobile-active {
+        transform: translateX(260px);
+    }
+
+    .main-content {
+        padding: 1.5rem !important;
+    }
+
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .content-header h1 {
+        font-size: 1.75rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .modal {
+        padding: 1.5rem !important;
+        width: 95% !important;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Scrollbar styling for better look on all devices */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Utility classes for visibility */
+.hide-mobile {
+    @media (max-width: 768px) {
+        display: none !important;
+    }
+}
+
+.show-mobile {
+    display: none;
+    @media (max-width: 768px) {
+        display: block !important;
+    }
+}
+
+.mobile-menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    @media (max-width: 1024px) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-dropdown {
+        width: calc(100vw - 2rem);
+        right: -1rem;
+    }
+
+    .user-profile {
+        padding: 0.25rem 0.5rem;
+    }
+
+    #userNameDisplay {
+        display: none;
+    }
+
+    .card {
+        padding: 1.25rem !important;
+    }
+}

@@ -10,15 +10,21 @@ import UserBadge from "../components/UserBadge.astro";
 
         <main class="main-content">
             <header class="content-header">
-                <div>
-                    <h1>Gestión de Solicitudes</h1>
-                    <p class="subtitle">
-                        Administra y crea nuevas solicitudes de servicio
-                    </p>
+                <div class="header-title-container">
+                    <button class="mobile-menu-toggle" id="menuToggle"
+                        >☰</button
+                    >
+                    <div>
+                        <h1>Gestión de Solicitudes</h1>
+                        <p class="subtitle hide-mobile">
+                            Administra y crea nuevas solicitudes de servicio
+                        </p>
+                    </div>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="openModalBtn">
-                        <span>+</span> Nueva Solicitud
+                        <span class="hide-mobile">+ Nueva Solicitud</span>
+                        <span class="show-mobile">+</span>
                     </button>
                     <UserBadge />
                 </div>
@@ -285,6 +291,13 @@ import UserBadge from "../components/UserBadge.astro";
     statusFilter?.addEventListener("change", () => loadSolicitudes(1));
 
     loadSolicitudes();
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    menuToggle?.addEventListener("click", () => {
+        sidebar?.classList.toggle("mobile-active");
+    });
 </script>
 
 <style>
@@ -302,6 +315,12 @@ import UserBadge from "../components/UserBadge.astro";
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
+        gap: 1rem;
+    }
+    .header-title-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
     .filters-bar {

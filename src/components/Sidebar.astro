@@ -9,10 +9,14 @@ const navItems = [
 ];
 ---
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="logo-sm">GS</div>
-        <span class="brand-name">Portal Admin</span>
+        <div class="sidebar-brand">
+            <div class="logo-sm">GS</div>
+            <span class="brand-name">Portal Admin</span>
+        </div>
+        <button class="close-mobile-btn show-mobile" id="closeSidebar">✕</button
+        >
     </div>
 
     <nav class="sidebar-nav">
@@ -39,9 +43,16 @@ const navItems = [
 
 <script>
     const logoutBtn = document.getElementById("logoutBtn");
+    const closeSidebar = document.getElementById("closeSidebar");
+    const sidebar = document.getElementById("sidebar");
+
     logoutBtn?.addEventListener("click", () => {
         localStorage.clear();
         window.location.href = "/";
+    });
+
+    closeSidebar?.addEventListener("click", () => {
+        sidebar?.classList.remove("mobile-active");
     });
 </script>
 
@@ -63,10 +74,35 @@ const navItems = [
     .sidebar-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        justify-content: space-between;
         padding-bottom: 2rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 2rem;
+    }
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .close-mobile-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    @media (max-width: 1024px) {
+        .close-mobile-btn {
+            display: flex;
+        }
     }
 
     .logo-sm {

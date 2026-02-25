@@ -10,11 +10,16 @@ import UserBadge from "../components/UserBadge.astro";
 
         <main class="main-content">
             <header class="content-header">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p class="subtitle">
-                        Resumen general de las solicitudes y reportes
-                    </p>
+                <div class="header-title-container">
+                    <button class="mobile-menu-toggle" id="menuToggle"
+                        >☰</button
+                    >
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p class="subtitle hide-mobile">
+                            Resumen general de las solicitudes y reportes
+                        </p>
+                    </div>
                 </div>
                 <UserBadge />
             </header>
@@ -166,6 +171,13 @@ import UserBadge from "../components/UserBadge.astro";
     }
 
     loadDashboardData();
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    menuToggle?.addEventListener("click", () => {
+        sidebar?.classList.toggle("mobile-active");
+    });
 </script>
 
 <style>
@@ -187,6 +199,13 @@ import UserBadge from "../components/UserBadge.astro";
         justify-content: space-between;
         align-items: center;
         margin-bottom: 3rem;
+        gap: 1rem;
+    }
+
+    .header-title-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
     .content-header h1 {
@@ -194,6 +213,7 @@ import UserBadge from "../components/UserBadge.astro";
         font-weight: 800;
         letter-spacing: -0.025em;
         color: var(--text-main);
+        line-height: 1;
     }
 
     .subtitle {
