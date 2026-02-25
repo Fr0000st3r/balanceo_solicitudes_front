@@ -9,26 +9,26 @@ import UserBadge from "../components/UserBadge.astro";
         <Sidebar active="solicitudes" />
 
         <main class="main-content">
-            <header class="content-header">
-                <div class="header-title-container">
-                    <button class="mobile-menu-toggle" id="menuToggle"
-                        >☰</button
-                    >
-                    <div>
+            <header class="page-header">
+                <div class="header-title-row">
+                    <div class="header-title-left">
+                        <button class="mobile-menu-toggle" id="menuToggle"
+                            >☰</button
+                        >
                         <h1>Gestión de Solicitudes</h1>
-                        <p class="subtitle hide-mobile">
-                            Administra y crea nuevas solicitudes de servicio
-                        </p>
                     </div>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn-primary" id="openModalBtn">
-                        <span class="hide-mobile">+ Nueva Solicitud</span>
-                        <span class="show-mobile">+</span>
-                    </button>
                     <UserBadge />
                 </div>
+                <p class="header-subtitle hide-mobile">
+                    Administra y crea nuevas solicitudes de servicio
+                </p>
             </header>
+
+            <div class="page-actions-row">
+                <button class="btn btn-primary w-full-mobile" id="openModalBtn">
+                    + Nueva Solicitud
+                </button>
+            </div>
 
             <section class="card animate-fade-in">
                 <div class="filters-bar mb-4">
@@ -310,18 +310,6 @@ import UserBadge from "../components/UserBadge.astro";
         padding: 2rem 3rem;
         background: var(--bg-main);
     }
-    .content-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-    }
-    .header-title-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
 
     .filters-bar {
         display: flex;
@@ -363,8 +351,15 @@ import UserBadge from "../components/UserBadge.astro";
     }
 
     @media (max-width: 768px) {
+        .main-content {
+            padding: 1rem !important;
+        }
         .filters-bar {
             flex-direction: column;
+            gap: 0.75rem;
+        }
+        .filters-bar select {
+            width: 100%;
         }
         .form-grid {
             grid-template-columns: 1fr;

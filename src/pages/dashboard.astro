@@ -9,19 +9,19 @@ import UserBadge from "../components/UserBadge.astro";
         <Sidebar active="dashboard" />
 
         <main class="main-content">
-            <header class="content-header">
-                <div class="header-title-container">
-                    <button class="mobile-menu-toggle" id="menuToggle"
-                        >☰</button
-                    >
-                    <div>
+            <header class="page-header">
+                <div class="header-title-row">
+                    <div class="header-title-left">
+                        <button class="mobile-menu-toggle" id="menuToggle"
+                            >☰</button
+                        >
                         <h1>Dashboard</h1>
-                        <p class="subtitle hide-mobile">
-                            Resumen general de las solicitudes y reportes
-                        </p>
                     </div>
+                    <UserBadge />
                 </div>
-                <UserBadge />
+                <p class="header-subtitle hide-mobile">
+                    Resumen general de las solicitudes y reportes
+                </p>
             </header>
 
             <section class="dashboard-grid animate-fade-in">
@@ -194,32 +194,17 @@ import UserBadge from "../components/UserBadge.astro";
         overflow-y: auto;
     }
 
-    .content-header {
+    .app-layout {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 3rem;
-        gap: 1rem;
+        min-height: 100vh;
+        background-color: #fce7f310; /* Very subtle tint */
     }
 
-    .header-title-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .content-header h1 {
-        font-size: 2.25rem;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-        color: var(--text-main);
-        line-height: 1;
-    }
-
-    .subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
-        margin-top: 0.5rem;
+    .main-content {
+        flex: 1;
+        padding: 2.5rem 4rem;
+        background: var(--bg-main);
+        overflow-y: auto;
     }
 
     /* Grid Layout */

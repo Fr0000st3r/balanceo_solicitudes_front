@@ -1,3 +1,12 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
 :root {
     /* Color Palette - Modern & Professional */
     --primary: #3b82f6;
@@ -41,9 +50,9 @@
 }
 
 body {
-    font-family: var(--font-sans);
-    background-color: var(--bg-main);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--text-main);
+    background-color: var(--bg-main);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
 }
@@ -369,6 +378,12 @@ input:focus {
 }
 
 /* Specific Table Helpers */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
 .id-badge {
     background: #f1f5f9;
     color: #475569;
@@ -531,28 +546,27 @@ input:focus {
 
 /* Mobile First Focus: Hide sidebar by default on small screens */
 @media (max-width: 1024px) {
+    .app-layout {
+        overflow-x: hidden;
+        display: block; /* Safer for mobile layout when sidebar is fixed */
+    }
+
     .sidebar {
         position: fixed !important;
         left: -260px;
         transition: transform 0.3s ease;
+        z-index: 1000;
+        height: 100vh;
+    }
+
+    .main-content {
+        width: 100%;
+        min-width: 0;
+        padding: 1.5rem !important;
     }
 
     .sidebar.mobile-active {
         transform: translateX(260px);
-    }
-
-    .main-content {
-        padding: 1.5rem !important;
-    }
-
-    .content-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
-    }
-
-    .content-header h1 {
-        font-size: 1.75rem !important;
     }
 }
 
@@ -639,5 +653,47 @@ input:focus {
 
     .card {
         padding: 1.25rem !important;
+    }
+}
+
+/* Standard Header Styles */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.header-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.header-title-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-subtitle {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+}
+
+.page-actions-row {
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .header-title-row h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .w-full-mobile {
+        width: 100% !important;
+    }
+    
+    .page-actions-row {
+        margin-bottom: 1.5rem;
     }
 }

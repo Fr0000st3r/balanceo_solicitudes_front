@@ -9,27 +9,26 @@ import UserBadge from "../components/UserBadge.astro";
         <Sidebar active="configuración" />
 
         <main class="main-content">
-            <header class="content-header">
-                <div class="header-title-container">
-                    <button class="mobile-menu-toggle" id="menuToggle"
-                        >☰</button
-                    >
-                    <div>
+            <header class="page-header">
+                <div class="header-title-row">
+                    <div class="header-title-left">
+                        <button class="mobile-menu-toggle" id="menuToggle"
+                            >☰</button
+                        >
                         <h1>Configuración de Carga</h1>
-                        <p class="subtitle hide-mobile">
-                            Ajusta las reglas de balanceo y distribución de
-                            trabajo
-                        </p>
                     </div>
-                </div>
-                <div class="header-actions">
-                    <button class="btn btn-primary" id="newConfigBtn">
-                        <span class="hide-mobile">+ Nueva Regla</span>
-                        <span class="show-mobile">+</span>
-                    </button>
                     <UserBadge />
                 </div>
+                <p class="header-subtitle hide-mobile">
+                    Ajusta las reglas de balanceo y distribución de trabajo
+                </p>
             </header>
+
+            <div class="page-actions-row">
+                <button class="btn btn-primary w-full-mobile" id="newConfigBtn">
+                    + Nueva Regla
+                </button>
+            </div>
 
             <div class="config-grid animate-fade-in">
                 <section class="card">
@@ -244,40 +243,40 @@ import UserBadge from "../components/UserBadge.astro";
         flex: 1;
         padding: 2rem 3rem;
         background: var(--bg-main);
-    }
-    .content-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-    }
-    .header-title-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+        min-width: 0;
     }
 
     .config-grid {
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 2rem;
+        width: 100%;
     }
+
+    .config-grid > * {
+        min-width: 0;
+    }
+
     .info-card {
         background: var(--primary-light);
         border-color: var(--primary);
+        height: min-content;
     }
+
     .info-list {
         list-style: none;
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
+
     .info-list li {
         position: relative;
         padding-left: 1.5rem;
         font-size: 0.875rem;
+        line-height: 1.6;
     }
+
     .info-list li::before {
         content: "→";
         position: absolute;
@@ -286,64 +285,26 @@ import UserBadge from "../components/UserBadge.astro";
         font-weight: bold;
     }
 
-    /* Modal Styles inherited or repeated as needed for standalone isolation */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: var(--transition);
-        z-index: 1000;
-    }
-    .modal-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-    .modal {
-        background: white;
-        padding: 2rem;
-        border-radius: var(--radius-lg);
-        width: 100%;
-        max-width: 500px;
-        transform: translateY(20px);
-        transition: var(--transition);
-    }
-    .modal-overlay.active .modal {
-        transform: translateY(0);
-    }
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-    .close-btn {
-        font-size: 1.5rem;
-        color: var(--text-muted);
-        padding: 0.5rem;
-    }
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-    }
-
+    /* Standard responsive behavior */
     @media (max-width: 1024px) {
+        .main-content {
+            padding: 1.5rem;
+        }
         .config-grid {
             grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card {
+            padding: 1rem !important;
         }
     }
 </style>
