@@ -2,6 +2,8 @@
 
 Esta es la rama `dev` donde se realizarán las pruebas y desarrollos.
 
+Estado actual: Configuración inicial completada.
+
 Este proyecto es el front-end para el sistema de balanceo y gestión de solicitudes, construido con **Astro** y **JavaScript/TypeScript** vanila para un rendimiento optimizado y una experiencia de usuario fluida.
 
 ## 🚀 Demo en Vivo
