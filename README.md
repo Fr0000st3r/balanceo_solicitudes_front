@@ -1,4 +1,6 @@
-# 🚀 Portal de Gestión de Solicitudes (GS) - Frontend
+# 🚀 Portal de Gestión# Prueba Técnica Total PAT - Frontend
+
+Esta es la rama `dev` donde se realizarán las pruebas y desarrollos.
 
 Este proyecto es el front-end para el sistema de balanceo y gestión de solicitudes, construido con **Astro** y **JavaScript/TypeScript** vanila para un rendimiento optimizado y una experiencia de usuario fluida.
 
