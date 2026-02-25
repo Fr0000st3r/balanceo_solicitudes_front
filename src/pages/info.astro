@@ -1,0 +1,282 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Información del Proyecto">
+    <main class="info-container">
+        <div class="info-card animate-fade-in">
+            <header class="info-header">
+                <a href="/" class="back-link">← Volver al login</a>
+                <h1>Información del Proyecto</h1>
+                <p class="project-tagline">
+                    Sistema de Gestión y Balanceo de Solicitudes
+                </p>
+            </header>
+
+            <section class="info-section">
+                <h2>Sobre el Proyecto</h2>
+                <p>
+                    Sistema administrativo que gestiona solicitudes de servicio
+                    y las distribuye automáticamente entre usuarios operadores
+                    utilizando algoritmos de balanceo de carga (Round Robin con
+                    margen de tolerancia).
+                </p>
+            </section>
+
+            <section class="info-section">
+                <h2>Tecnologías Utilizadas (Front-end)</h2>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <span class="tech-icon">🚀</span>
+                        <div class="tech-info">
+                            <strong>Astro</strong>
+                            <span>Framework moderno para sitios rápidos</span>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-icon">🎨</span>
+                        <div class="tech-info">
+                            <strong>Vanilla CSS</strong>
+                            <span>Estilos personalizados y diseño premium</span>
+                        </div>
+                    </div>
+                    <div class="tech-item">
+                        <span class="tech-icon">📊</span>
+                        <div class="tech-info">
+                            <strong>Chart.js</strong>
+                            <span>Visualización de datos y reportes</span>
+                        </div>
+                    </div>
+                    {
+                        /* 
+                    <div class="tech-item">
+                        <span class="tech-icon">🤖</span>
+                        <div class="tech-info">
+                            <strong>Google Gemini</strong>
+                            <span
+                                >Asistencia de IA de última generación para el
+                                desarrollo</span
+                            >
+                        </div>
+                    </div>
+                    */
+                    }
+                    <div class="tech-item">
+                        <span class="tech-icon">🛠️</span>
+                        <div class="tech-info">
+                            <strong>JavaScript (ES6+)</strong>
+                            <span>Lógica dinámica y consumo de API</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-section">
+                <h2>Backend y API</h2>
+                <p>
+                    La aplicación consume una API REST robusta desarrollada en <strong
+                        >Laravel</strong
+                    > que maneja la autenticación, la lógica de negocio del balanceo
+                    de carga y la persistencia de datos en una base de datos MySQL/PostgreSQL.
+                </p>
+            </section>
+
+            <footer class="info-footer">
+                <div class="links-grid">
+                    <a
+                        href="https://github.com/Fr0000st3r/balanceo_solicitudes_front"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="external-link github"
+                    >
+                        <span class="link-icon">📂</span>
+                        Ver en GitHub
+                    </a>
+                    <a
+                        href="https://urrutia-dev.vercel.app/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="external-link portfolio"
+                    >
+                        <span class="link-icon">👤</span>
+                        Mi Portafolio
+                    </a>
+                </div>
+            </footer>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    .info-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 2rem 1.5rem;
+    }
+
+    .info-card {
+        background: white;
+        padding: 3rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 700px;
+        border: 1px solid var(--border);
+    }
+
+    .info-header {
+        margin-bottom: 2.5rem;
+        position: relative;
+    }
+
+    .back-link {
+        display: inline-block;
+        color: var(--primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        transition: transform 0.2s ease;
+    }
+
+    .back-link:hover {
+        transform: translateX(-4px);
+    }
+
+    .info-header h1 {
+        font-size: 2.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+        letter-spacing: -0.025em;
+    }
+
+    .project-tagline {
+        color: var(--text-muted);
+        font-size: 1.125rem;
+    }
+
+    .info-section {
+        margin-bottom: 2rem;
+    }
+
+    .info-section h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-section p {
+        color: #475569;
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.25rem;
+        margin-top: 1rem;
+    }
+
+    .tech-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        transition: border-color 0.2s ease;
+    }
+
+    .tech-item:hover {
+        border-color: var(--primary);
+    }
+
+    .tech-icon {
+        font-size: 1.5rem;
+    }
+
+    .tech-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .tech-info strong {
+        color: var(--text-main);
+        font-size: 0.9375rem;
+    }
+
+    .tech-info span {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+    }
+
+    .info-footer {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .links-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .external-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-radius: var(--radius);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .github {
+        background: #333;
+        color: white;
+    }
+
+    .github:hover {
+        background: #000;
+        transform: translateY(-2px);
+    }
+
+    .portfolio {
+        background: var(--primary);
+        color: white;
+    }
+
+    .portfolio:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+        .info-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .info-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .links-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tech-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
