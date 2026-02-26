@@ -25,6 +25,7 @@ const navItems = [
                 <a
                     href={item.path}
                     class={`nav-item ${active === item.name.toLowerCase() ? "active" : ""}`}
+                    data-nav-name={item.name}
                 >
                     <span class="nav-icon">{item.icon}</span>
                     <span class="nav-text">{item.name}</span>
@@ -45,6 +46,17 @@ const navItems = [
     const logoutBtn = document.getElementById("logoutBtn");
     const closeSidebar = document.getElementById("closeSidebar");
     const sidebar = document.getElementById("sidebar");
+
+    // Permisos de navegación
+    const userGrupo = localStorage.getItem("user_grupo");
+    if (userGrupo === "1") {
+        const configLink = document.querySelector(
+            '[data-nav-name="Configuración"]',
+        );
+        if (configLink) {
+            configLink.remove();
+        }
+    }
 
     logoutBtn?.addEventListener("click", () => {
         localStorage.clear();
@@ -156,6 +168,7 @@ const navItems = [
     }
 
     .sidebar-footer {
+        margin-top: auto;
         padding-top: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }

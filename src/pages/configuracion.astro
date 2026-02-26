@@ -150,6 +150,11 @@ import UserBadge from "../components/UserBadge.astro";
 <script>
     import { configuracion } from "../lib/api";
 
+    // Redirección de seguridad si es Grupo 1
+    if (localStorage.getItem("user_grupo") === "1") {
+        window.location.href = "/dashboard";
+    }
+
     const tableBody = document.getElementById("configTableBody");
     const modal = document.getElementById("configModal");
     const form = document.getElementById("configForm") as HTMLFormElement;

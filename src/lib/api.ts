@@ -68,6 +68,10 @@ export const reportes = {
         const query = new URLSearchParams(params).toString();
         return apiFetch(`/reportes/solicitudes-por-usuario/${id}?${query}`);
     },
+    enviarPorEmail: (data: any) => apiFetch('/reportes/solicitudes-por-usuario/export/email', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
 };
 
 export const configuracion = {
@@ -76,4 +80,8 @@ export const configuracion = {
         method: 'POST',
         body: JSON.stringify(data),
     }),
+};
+
+export const usuarios = {
+    getAll: () => apiFetch('/usuarios'),
 };

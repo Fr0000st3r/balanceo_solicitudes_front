@@ -97,6 +97,62 @@ import UserBadge from "../components/UserBadge.astro";
             </div>
         </main>
     </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="exportModalTitle">Exportar Reporte</h2>
+                <button id="closeExportModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="exportInitialOptions">
+                    <p class="mb-6">
+                        Elige cómo deseas recibir el reporte de solicitudes por
+                        usuario:
+                    </p>
+                    <div class="export-options">
+                        <button
+                            class="btn btn-outline w-full"
+                            id="btnDownloadNow"
+                        >
+                            📥 Descargar ahora
+                        </button>
+                        <button
+                            class="btn btn-outline w-full"
+                            id="btnSendEmail"
+                        >
+                            📧 Recibir por correo
+                        </button>
+                    </div>
+                </div>
+
+                <div id="emailFormSection" style="display: none;">
+                    <p class="mb-4">
+                        Ingresa el correo electrónico donde recibirás el
+                        reporte:
+                    </p>
+                    <div class="form-group">
+                        <label for="exportEmail">Correo Electrónico</label>
+                        <input
+                            type="email"
+                            id="exportEmail"
+                            placeholder="ejemplo@correo.com"
+                            required
+                        />
+                    </div>
+                    <div class="modal-footer mt-4">
+                        <button class="btn btn-secondary" id="btnBackToOptions"
+                            >Volver</button
+                        >
+                        <button class="btn btn-primary" id="btnConfirmEmail"
+                            >Enviar Reporte</button
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </Layout>
 
 <script>
@@ -215,17 +271,98 @@ import UserBadge from "../components/UserBadge.astro";
     }
 
     // Export Handlers
-    document.getElementById("exportCsv")?.addEventListener("click", () => {
+    const exportModal = document.getElementById("exportModal");
+    const closeExportModal = document.getElementById("closeExportModal");
+    const exportInitialOptions = document.getElementById(
+        "exportInitialOptions",
+    );
+    const emailFormSection = document.getElementById("emailFormSection");
+    const exportEmailInput = document.getElementById(
+        "exportEmail",
+    ) as HTMLInputElement;
+
+    let pendingExportType = "csv";
+
+    function openExportModal(type: string) {
+        pendingExportType = type;
+        const title = document.getElementById("exportModalTitle");
+        if (title)
+            title.textContent = `Exportar Reporte (${type.toUpperCase()})`;
+
+        exportInitialOptions!.style.display = "block";
+        emailFormSection!.style.display = "none";
+        exportModal?.classList.add("active");
+    }
+
+    document
+        .getElementById("exportCsv")
+        ?.addEventListener("click", () => openExportModal("csv"));
+    document
+        .getElementById("exportHtml")
+        ?.addEventListener("click", () => openExportModal("html"));
+
+    document.getElementById("btnDownloadNow")?.addEventListener("click", () => {
         const userId = localStorage.getItem("user_id");
-        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/csv?anio=${anioFilter.value}&activo=${statusFilter.value}&user_id=${userId}`;
+        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/${pendingExportType}?anio=${anioFilter.value}&activo=${statusFilter.value}&user_id=${userId}`;
         window.open(url, "_blank");
+        exportModal?.classList.remove("active");
     });
 
-    document.getElementById("exportHtml")?.addEventListener("click", () => {
-        const userId = localStorage.getItem("user_id");
-        const url = `${API_BASE_URL}/reportes/solicitudes-por-usuario/export/html?anio=${anioFilter.value}&activo=${statusFilter.value}&user_id=${userId}`;
-        window.open(url, "_blank");
+    document.getElementById("btnSendEmail")?.addEventListener("click", () => {
+        exportInitialOptions!.style.display = "none";
+        emailFormSection!.style.display = "block";
     });
+
+    document
+        .getElementById("btnBackToOptions")
+        ?.addEventListener("click", () => {
+            exportInitialOptions!.style.display = "block";
+            emailFormSection!.style.display = "none";
+        });
+
+    document
+        .getElementById("btnConfirmEmail")
+        ?.addEventListener("click", async () => {
+            const email = exportEmailInput.value;
+            if (!email) {
+                alert("Por favor ingresa un correo electrónico.");
+                return;
+            }
+
+            const btn = document.getElementById(
+                "btnConfirmEmail",
+            ) as HTMLButtonElement;
+            const originalText = btn.textContent;
+
+            try {
+                btn.disabled = true;
+                btn.textContent = "Enviando...";
+
+                await reportes.enviarPorEmail({
+                    type: pendingExportType,
+                    anio: anioFilter.value,
+                    activo: statusFilter.value,
+                    email: email,
+                });
+
+                (window as any).showToast("Reporte enviado con éxito");
+                exportModal?.classList.remove("active");
+                exportEmailInput.value = "";
+            } catch (error: any) {
+                console.error(error);
+                (window as any).showToast(
+                    error.message || "Error al enviar el reporte",
+                    "error",
+                );
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+    closeExportModal?.addEventListener("click", () =>
+        exportModal?.classList.remove("active"),
+    );
 
     closeDetail?.addEventListener("click", () =>
         detailModal?.classList.remove("active"),
@@ -346,5 +483,29 @@ import UserBadge from "../components/UserBadge.astro";
             flex: 1;
             max-width: 200px;
         }
+    }
+
+    .export-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn-outline {
+        background: white;
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-outline:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+    }
+
+    .mb-6 {
+        margin-bottom: 1.5rem;
     }
 </style>
